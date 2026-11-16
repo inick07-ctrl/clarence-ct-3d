@@ -219,6 +219,23 @@ function buildModel(model) {
   const gableMat = { int: intMat, ext: extMat, brick: MAT.brick, board: MAT.board, glass: MAT.glass };
   for (const rf of M.roofs || []) {
     if (rf.flat) { const m = new THREE.Mesh(boxRect(rf.x0, rf.y0, rf.x1, rf.y1, rf.h, rf.h + .8), new THREE.MeshStandardMaterial({ color: '#1d1e20', roughness: .7 })); m.castShadow = true; roof.add(m); continue; }
+    if (rf.shed) { // single-slope roof: high edge at y0 (or x0 when along:'y'), low edge at y1 (x1)
+      const ax = rf.along !== 'y', o = rf.oh ?? 0.8, span = ax ? rf.y1 - rf.y0 : rf.x1 - rf.x0, k = (rf.lo - rf.hi) / span;
+      const a0 = (ax ? rf.x0 : rf.y0) - o, a1 = (ax ? rf.x1 : rf.y1) + o, s0 = ax ? rf.y0 : rf.x0, s1 = (ax ? rf.y1 : rf.x1) + o, h1 = rf.lo + k * o;
+      const V = (a, sv, h) => ax ? new THREE.Vector3(Wx(a), h, Wz(sv)) : new THREE.Vector3(Wx(sv), h, Wz(a));
+      const q = [V(a0, s0, rf.hi), V(a1, s0, rf.hi), V(a1, s1, h1), V(a0, s1, h1)], pos = [], uvs = [];
+      for (const [i, j, l] of [[0, 1, 2], [0, 2, 3]]) {
+        let t = [q[i], q[j], q[l]];
+        const n = new THREE.Vector3().subVectors(t[1], t[0]).cross(new THREE.Vector3().subVectors(t[2], t[0]));
+        if (n.y < 0) t = [t[0], t[2], t[1]];
+        for (const v of t) { pos.push(v.x, v.y, v.z); uvs.push((ax ? v.z : v.x) / 6, (ax ? v.x : v.z) / 6); }
+      }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2)); g.computeVertexNormals();
+      const top = new THREE.Mesh(g, roofTop); top.castShadow = true; top.receiveShadow = true;
+      roof.add(top, new THREE.Mesh(g, roofUnder));
+      continue;
+    }
     const along = rf.along === 'y', pitch = rf.pitch ?? .5, ohv = rf.oh ?? 1.5, eaveW = rf.eave ?? H;
     const oh = Array.isArray(ohv) ? ohv : [ohv, ohv], endOh = rf.endOh ?? [Math.max(...oh), Math.max(...oh)];
     const a = along ? [rf.x0 - oh[0], rf.x1 + oh[1]] : [rf.y0 - oh[0], rf.y1 + oh[1]];
