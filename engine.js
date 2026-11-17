@@ -447,6 +447,9 @@ for (const r of REGISTRY) {
   b.onclick = () => { if (location.hash !== '#' + r.id) location.hash = r.id; else loadModel(r.id); };
   tabs.appendChild(b);
 }
+// keep the HUD / compass below the tab bar when the tabs wrap onto two rows on phones
+const syncTopbar = () => document.documentElement.style.setProperty('--tbh', $('topbar').offsetHeight + 'px');
+syncTopbar(); addEventListener('resize', syncTopbar);
 let loading = null, currentId = null;
 async function loadModel(id) {
   const entry = REGISTRY.find(r => r.id === id) || REGISTRY[0];
