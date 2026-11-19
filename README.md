@@ -1,7 +1,20 @@
-# Smith Home Models
+# Home Models
 
-Interactive 3D models of Smith home plans: https://inick07-ctrl.github.io/clarence-ct-3d/
+Interactive 3D models of the home plans: https://inick07-ctrl.github.io/clarence-ct-3d/
 
-- `#smith-01` opens Smith 01 (Clarence Ct U-plan), `#smith-02` opens Smith 02 (modern farmhouse with pool), `#smith-03` opens Smith 03 (Back Forty barndominium with shop garage), `#smith-04` opens Smith 04 (modern ranch with two master suites and a 3-car garage), `#smith-05` opens Smith 05 (three-gable modern farmhouse with a vaulted back porch), `#smith-06` opens Smith 06 (original design: breezeway kitchen/dining/living, screened porch with a see-through fireplace, library + gym, safe room, side-load 3-car garage), and `#smith-07` opens Smith 07 (single-story farmhouse: 3 bed + study + flex, open living/dining/kitchen, 50' front and rear porches, side-load 3-car garage), and `#smith-08` opens Smith 08 (single-story ranch with a 13x11 gym, office/library and storage/safe room, 31' back porch, side-load 3-car garage, English Country interior), and `#smith-09` opens Smith 09 (single-story with two master suites — Master 2 shrunk to 14'x12' — Bedroom 1, vaulted great room / dining / kitchen, 60' front porch, 3-car garage, English Country interior), `#smith-10` opens Smith 10 (single-story ranch with a west office, 3-car garage and gym, mudroom and butler's pantry into the kitchen, linear family fireplace, English Country interior), and `#smith-11` opens Smith 11 (single-story with 4 bedrooms, a study, vaulted great room / dining / kitchen, great-room fireplace, covered patio, 3-car garage, English Country interior).
+Hash links keep the original ids, so existing bookmarks still work:
+
+- `#smith-01` opens **Willow Court** (a U-shaped single-story home around a quiet court)
+- `#smith-02` opens **Poolside Gables** (modern farmhouse with a terrace and pool house)
+- `#smith-03` opens **The Back Forty** (barndominium with a shop garage)
+- `#smith-04` opens **Twin Oaks** (modern ranch with two master suites)
+- `#smith-05` opens **Triple Gable** (three-gable modern farmhouse with a vaulted back porch)
+- `#smith-06` opens **Breezeway Hearth** (breezeway farmhouse with a screened porch and see-through fireplace)
+- `#smith-07` opens **Porchlight Farm** (farmhouse with fifty-foot porches front and back)
+- `#smith-08` opens **Limewash Hall** (English Country ranch with a library, gym, and long back porch)
+- `#smith-09` opens **The Prairie Lantern** (English Country house with a sixty-foot front porch)
+- `#smith-10` opens **Ember Ranch** (compact English Country ranch with a linear fireplace and butler's pantry)
+- `#smith-11` opens **Hearth Patio** (English Country house with four bedrooms, a study, and a covered patio)
+
 - `models/smith-06-plan.png` and `models/smith-07-plan.png` are generated (clean redraws), not scanned: `s06/gen.py` / `s07/gen07.py` / `s08/gen08.py` / `s09/gen09.py` (kept outside the repo) write the plan and the model's walls/rooms from the same lists.
 - To add a home, create `models/smith-0N.js` using the same format as `models/smith-02.js`, then add it to `models/registry.js`. A tab appears automatically.
