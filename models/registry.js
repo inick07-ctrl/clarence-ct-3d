@@ -8,4 +8,5 @@ export default [
   { id: 'smith-06', name: 'Smith 06', load: () => import('./smith-06.js') },
   { id: 'smith-07', name: 'Smith 07', load: () => import('./smith-07.js') },
   { id: 'smith-08', name: 'Smith 08', load: () => import('./smith-08.js') },
+  { id: 'smith-09', name: 'Smith 09', load: () => import('./smith-09.js') },
 ];
