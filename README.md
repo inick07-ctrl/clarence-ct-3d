@@ -1,4 +1,6 @@
-# Home Models
+# PeakStead Designs
+
+Design your homestead at its peak.
 
 Interactive 3D models of the home plans: https://inick07-ctrl.github.io/clarence-ct-3d/
 

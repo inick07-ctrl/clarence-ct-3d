@@ -697,7 +697,7 @@ function buildModel(model) {
   }
   setCut(cutOn); setRoof(roofOn);
   $('mtitle').textContent = M.title || M.name; $('msub').textContent = M.subtitle || '';
-  document.title = `${M.name} — Home Models`;
+  document.title = `${M.name} — PeakStead Designs`;
 }
 
 // ---------- controls / modes ----------
