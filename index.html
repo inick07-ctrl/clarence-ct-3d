@@ -17,6 +17,9 @@
   .btns button{font:inherit;font-size:12.5px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:var(--fg);padding:6px 9px;border-radius:8px;cursor:pointer}
   .btns button:hover{background:rgba(255,255,255,.18)}
   .btns button.on{background:var(--acc);color:#1d1d1d;border-color:var(--acc)}
+  .stylepick{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--fg);margin-top:2px}
+  .stylepick select{font:inherit;font-size:12.5px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:var(--fg);padding:6px 8px;border-radius:8px;cursor:pointer}
+  .stylepick select option{color:#1d1d1d}
   #help{font-size:12px;opacity:.85;margin-top:8px;line-height:1.35}
   #hud.collapsed .btns,#hud.collapsed #help,#hud.collapsed .sub{display:none}
   #toggleHud{position:absolute;right:8px;top:6px;background:none;border:0;color:var(--fg);font-size:16px;cursor:pointer;opacity:.8}
@@ -63,6 +66,12 @@
     <button id="bLabels" class="on">Room names</button>
     <button id="bCut">Cutaway walls</button>
     <button id="bPlan">Plan overlay</button>
+    <label id="styleWrap" class="stylepick">Style
+      <select id="bStyle" aria-label="Interior style">
+        <option value="default">Default</option>
+        <option value="english-country">English Country</option>
+      </select>
+    </label>
   </div>
   <div id="help"></div>
 </div>
