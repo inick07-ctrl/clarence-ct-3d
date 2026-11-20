@@ -17,6 +17,7 @@ Hash links keep the original ids, so existing bookmarks still work:
 - `#smith-09` opens **The Prairie Lantern** (English Country house with a sixty-foot front porch)
 - `#smith-10` opens **Ember Ranch** (compact English Country ranch with a linear fireplace and butler's pantry)
 - `#smith-11` opens **Hearth Patio** (English Country house with four bedrooms, a study, and a covered patio)
+- `#smith-12` opens **Twin Porch Homestead** (farmhouse with matching covered porches front and back, an open kitchen-dining-living core, and a two-car garage)
 
 - `models/smith-06-plan.png` and `models/smith-07-plan.png` are generated (clean redraws), not scanned: `s06/gen.py` / `s07/gen07.py` / `s08/gen08.py` / `s09/gen09.py` (kept outside the repo) write the plan and the model's walls/rooms from the same lists.
 - To add a home, create `models/smith-0N.js` using the same format as `models/smith-02.js`, then add it to `models/registry.js`. A tab appears automatically.

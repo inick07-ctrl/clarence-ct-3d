@@ -11,5 +11,6 @@ export default [
   { id: 'smith-09', name: "The Prairie Lantern", load: () => import('./smith-09.js') },
   { id: 'smith-10', name: "Ember Ranch", load: () => import('./smith-10.js') },
   { id: 'smith-11', name: "Hearth Patio", load: () => import('./smith-11.js') },
+  { id: 'smith-12', name: "Twin Porch Homestead", load: () => import('./smith-12.js') },
 ];
 

@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import REGISTRY from './models/registry.js';
+import { sanitizeWalls, clipCounters, autoFurnish, installFurniture, buildItemMesh, makeItem } from './furniture.js';
 
 const $ = (id) => document.getElementById(id);
 const canvas = $('c');
@@ -158,6 +159,7 @@ const ground = new THREE.Mesh(new THREE.PlaneGeometry(900, 900), new THREE.MeshL
 ground.rotation.x = -Math.PI / 2; ground.position.y = -0.6; ground.receiveShadow = true; scene.add(ground);
 
 // ---------- per-model state ----------
+let itemsGroup = null, currentItems = [], defaultItems = [], itemsOn = true;
 let M = null, root = null, wallsFull, wallsCut, roof, labels, planOverlay, ceilings;
 let fires = [];
 let CX = 0, CZ = 0, BW = 90, BH = 80, solids = [];
@@ -275,7 +277,7 @@ function applyEnglishCountry(kit, st, H, WS) {
 
 function buildModel(model) {
   if (root) {
-    root.traverse(o => { if (o.element?.parentNode) o.element.parentNode.removeChild(o.element); if (o.geometry) o.geometry.dispose(); });
+    root.traverse(o => { if (o.element?.parentNode) o.element.parentNode.removeChild(o.element); if (o.geometry && !o.geometry.userData?.shared) o.geometry.dispose(); });
     scene.remove(root);
   }
   M = model; loadedModel = model; root = new THREE.Group(); scene.add(root);
@@ -320,7 +322,11 @@ function buildModel(model) {
 
   // footprint for exterior-skin side detection
   const inside = (x, y) => M.rooms.some(r => !(r[7]?.outside) && x > r[3] && x < r[5] && y > r[4] && y < r[6]);
-  const WS = M.walls;
+  const WS = JSON.parse(JSON.stringify(M.walls || {}));
+  M.walls = WS;
+  sanitizeWalls(WS);
+  clipCounters(WS, M.rooms);
+
   function skinSplit(r, h0, h1, out) {
     // r = [x0,y0,x1,y1]; push {geo, mat} pieces: thin dark skin on the outside face, light core inside
     if (!mats.extSkin) { out.ext.push(boxRect(r[0], r[1], r[2], r[3], h0, h1, 4)); return; }
@@ -589,8 +595,30 @@ function buildModel(model) {
       fires.push({ light, base: 1.55, flames, ember, t0: Math.random() * 12 });
     },
   };
+  const detected = {};
+  itemsGroup = new THREE.Group(); itemsGroup.name = 'items'; root.add(itemsGroup);
+  installFurniture(kit, { rooms: M.rooms, WS, detected, Wx, Wz, itemsGroup, ceiling: H });
   M.furnish?.(kit);
   if (currentStyle === 'english-country') applyEnglishCountry(kit, st, H, WS);
+  const fromCounters = [];
+  for (const c of (WS.counter || [])) {
+    const w = Math.abs(c[2] - c[0]), d = Math.abs(c[3] - c[1]);
+    fromCounters.push(makeItem(w < 4 && d < 4 && Math.min(w, d) >= 1.8 ? 'island' : 'counter', {
+      x: (c[0] + c[2]) / 2, y: (c[1] + c[3]) / 2, w: Math.max(w, d), d: Math.min(w, d), rot: w >= d ? 0 : 90,
+    }));
+  }
+  WS.counter = [];
+  let auto = autoFurnish(M, WS);
+  if ((detected.counters || []).length || fromCounters.length) {
+    auto = auto.filter(it => it.type !== 'island' && it.type !== 'counter' && it.type !== 'barstool');
+  }
+  defaultItems = [...auto, ...(detected.counters || []), ...fromCounters, ...(detected.placed || [])];
+  try {
+    const raw = localStorage.getItem('peakstead-plan-v1:example:' + (M.id || ''));
+    const saved = raw && JSON.parse(raw);
+    currentItems = (saved && Array.isArray(saved.items) && saved.items.length) ? saved.items.map(x => ({ ...x })) : defaultItems.map(x => ({ ...x }));
+  } catch (e) { currentItems = defaultItems.map(x => ({ ...x })); }
+  refreshItems();
   syncAreaUi(M);
 
   // roofs
@@ -678,7 +706,7 @@ function buildModel(model) {
     const div = document.createElement('div');
     const minor = o.minor || !dims;
     div.className = 'label' + (minor ? ' minor' : '');
-    div.innerHTML = name + (dims || o.vaulted ? `<small>${dims || ''}${o.vaulted ? (dims ? ' · ' : '') + 'vaulted' : ''}</small>` : '');
+    div.innerHTML = name + (dims || o.vaulted || o.tray ? `<small>${dims || ''}${[o.vaulted && 'vaulted', o.tray && 'tray'].filter(Boolean).join(' · ') ? ((dims ? ' · ' : '') + [o.vaulted && 'vaulted', o.tray && 'tray'].filter(Boolean).join(' · ')) : ''}</small>` : '');
     const obj = new CSS2DObject(div);
     const [lx, ly] = o.labelAt || [(a + c) / 2, (b + d) / 2];
     obj.position.set(Wx(lx), minor ? 3 : 4.5, Wz(ly));
@@ -753,10 +781,27 @@ function setRoof(v) { roofOn = v; if (roof) roof.visible = v; if (ceilings) ceil
 function setLabels(v) { labelsOn = v; if (labels) { labels.visible = v; labels.children.forEach(o => { o.visible = v; }); } setBtn('bLabels', v); }
 function setCut(v) { cutOn = v; if (wallsCut) { wallsCut.visible = v; wallsFull.visible = !v; } setBtn('bCut', v); if (v && roofOn) setRoof(false); }
 function setPlan(v) { planOn = v; if (planOverlay) planOverlay.visible = v; setBtn('bPlan', v); }
+function refreshItems() {
+  if (!itemsGroup) return;
+  while (itemsGroup.children.length) itemsGroup.remove(itemsGroup.children[0]);
+  const ctx = { Wx, Wz, ceiling: (M?.wallH || 9) };
+  for (const rec of (currentItems || [])) {
+    const mesh = buildItemMesh(rec, ctx);
+    if (mesh) itemsGroup.add(mesh);
+  }
+  itemsGroup.visible = itemsOn;
+}
+function setItemsVisible(v) {
+  itemsOn = !!v;
+  if (itemsGroup) itemsGroup.visible = itemsOn;
+  setBtn('bItems', itemsOn);
+}
+
 $('bRoof').onclick = () => setRoof(!roofOn);
 $('bLabels').onclick = () => setLabels(!labelsOn);
 $('bCut').onclick = () => setCut(!cutOn);
 $('bPlan').onclick = () => setPlan(!planOn);
+if ($('bItems')) { setItemsVisible(true); $('bItems').onclick = () => setItemsVisible(!itemsOn); }
 $('bOrbit').onclick = () => setMode('orbit');
 $('bTop').onclick = () => setMode('top');
 $('bWalk').onclick = () => setMode('walk');
